@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./server
+    entrypoint: /bin/bash /app/entrypoint.sh
+    volumes:
+      - "./server/code:/app"
+    ports:
+      - "8080:8080"
