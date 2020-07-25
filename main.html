@@ -11,5 +11,21 @@
 
   <script type="text/javascript">
     const socket = new WebSocket('ws://localhost:8080/ws');
+
+    socket.addEventListener('open', function(e) {
+      console.log('connection has been opened');
+    });
+
+    socket.addEventListener('message', function(e) {
+      console.log('message', e.data);
+    });
+
+    socket.addEventListener('close', function(e) {
+      console.log('connection has been closed');
+    });
+
+    socket.addEventListener('error', function(e) {
+      console.log('error', e);
+    });
   </script>
 </html>

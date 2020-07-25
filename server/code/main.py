@@ -1,40 +1,63 @@
 from aiohttp import web
 
 
-data = {
-    'ws': None,
-}
+class WebsocketsHolder:
+    def __init__(self):
+        self._items = []
+
+    def __iter__(self):
+        return iter(self._items)
+
+    def add(self, ws):
+        self._items.append(ws)
+
+    async def send(self, message):
+        for ws in self:
+            if ws.closed:
+                continue
+            await ws.send_str(message)
 
 
+async def index(request):
+    data = []
+    for ws in request.app['ws_holder']:
+        data.append(str(ws.__dict__))
+    return web.Response(text='\n'.join(data))
 
 
-async def hello(request):
-    return web.Response(text=str(data['ws']))
+async def message(request):
+    text = request.query.get('text', 'nothing')
+    await request.app['ws_holder'].send(text)
+    return web.Response(text='Sended')
 
 
 async def websocket_handler(request):
+    ws = web.WebSocketResponse()
+    request.app['ws_holder'].add(ws)
+    await ws.prepare(request)
 
-    data['ws'] = web.WebSocketResponse()
-    await data['ws'].prepare(request)
-
-    async for msg in data['ws']:
+    async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
             if msg.data == 'close':
-                await data['ws'].close()
+                await ws.close()
             else:
-                await data['ws'].send_str(msg.data + '/answer')
+                await ws.send_str(msg.data + '/answer')
         elif msg.type == aiohttp.WSMsgType.ERROR:
             print('ws connection closed with exception %s' %
-                  data['ws'].exception())
+                  ws.exception())
 
     print('websocket connection closed')
 
-    return data['ws']
+    return ws
 
 
 if __name__ == '__main__':
     app = web.Application()
-    app.add_routes([web.get('/', hello)])
+
+    app.add_routes([web.get('/', index)])
+    app.add_routes([web.get('/message', message)])
     app.add_routes([web.get('/ws', websocket_handler)])
+
+    app['ws_holder'] = WebsocketsHolder()
 
     web.run_app(app)
