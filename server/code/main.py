@@ -1,3 +1,5 @@
+import aiohttp_jinja2, jinja2, pathlib
+
 from aiohttp import web
 
 
@@ -19,11 +21,9 @@ class WebsocketsHolder:
             await ws.send_str(message)
 
 
+@aiohttp_jinja2.template('index.html')
 async def index(request):
-    data = []
-    for ws in request.app['ws_holder']:
-        data.append(str(ws.headers['Sec-WebSocket-Accept']))
-    return web.Response(text='\n'.join(data))
+    return {}
 
 
 async def message(request):
@@ -36,6 +36,8 @@ async def websocket_handler(request):
     ws = web.WebSocketResponse()
     await ws.prepare(request)
     request.app['ws_holder'].add(ws)
+
+    await request.app['ws_holder'].send(str(list(request.app['ws_holder']._items.keys())))
 
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
@@ -59,6 +61,12 @@ if __name__ == '__main__':
     app.add_routes([web.get('/', index)])
     app.add_routes([web.get('/message', message)])
     app.add_routes([web.get('/ws', websocket_handler)])
+
+    BASE_DIR = pathlib.Path(__file__).parent
+    aiohttp_jinja2.setup(
+        app,
+        loader=jinja2.FileSystemLoader(BASE_DIR / 'templates')
+    )
 
     app['ws_holder'] = WebsocketsHolder()
 
