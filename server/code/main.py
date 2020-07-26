@@ -3,25 +3,26 @@ from aiohttp import web
 
 class WebsocketsHolder:
     def __init__(self):
-        self._items = []
+        self._items = {}
 
     def __iter__(self):
-        return iter(self._items)
+        return iter(self._items.values())
 
     def add(self, ws):
-        self._items.append(ws)
+        self._items[ws.headers['Sec-WebSocket-Accept']] = ws
+
+    def remove(self, ws):
+        del self._items[ws.headers['Sec-WebSocket-Accept']]
 
     async def send(self, message):
         for ws in self:
-            if ws.closed:
-                continue
             await ws.send_str(message)
 
 
 async def index(request):
     data = []
     for ws in request.app['ws_holder']:
-        data.append(str(ws.__dict__))
+        data.append(str(ws.headers['Sec-WebSocket-Accept']))
     return web.Response(text='\n'.join(data))
 
 
@@ -33,8 +34,8 @@ async def message(request):
 
 async def websocket_handler(request):
     ws = web.WebSocketResponse()
-    request.app['ws_holder'].add(ws)
     await ws.prepare(request)
+    request.app['ws_holder'].add(ws)
 
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
@@ -48,6 +49,7 @@ async def websocket_handler(request):
 
     print('websocket connection closed')
 
+    request.app['ws_holder'].remove(ws)
     return ws
 
 
