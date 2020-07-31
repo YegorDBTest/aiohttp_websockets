@@ -27,31 +27,31 @@ async def index(request):
 
 
 async def message(request):
-    text = request.query.get('text', 'nothing')
-    await request.app['ws_holder'].send(text)
-    return web.Response(text='Sended')
+    data = await request.json()
+    text = data.get('text', 'nothing')
+    await request.app['ws_holder'].send(f'< Nobody >  {text}')
+    return web.Response()
 
 
 async def websocket_handler(request):
     ws = web.WebSocketResponse()
     await ws.prepare(request)
-    request.app['ws_holder'].add(ws)
 
-    await request.app['ws_holder'].send(str(list(request.app['ws_holder']._items.keys())))
+    request.app['ws_holder'].add(ws)
+    await request.app['ws_holder'].send(
+        f"< {ws.headers['Sec-WebSocket-Accept']} >  HAS JOINED"
+    )
 
     async for msg in ws:
-        if msg.type == aiohttp.WSMsgType.TEXT:
-            if msg.data == 'close':
-                await ws.close()
-            else:
-                await ws.send_str(msg.data + '/answer')
-        elif msg.type == aiohttp.WSMsgType.ERROR:
-            print('ws connection closed with exception %s' %
-                  ws.exception())
-
-    print('websocket connection closed')
+        await request.app['ws_holder'].send(
+            f"< {ws.headers['Sec-WebSocket-Accept']} >  {msg.data}"
+        )
 
     request.app['ws_holder'].remove(ws)
+    await request.app['ws_holder'].send(
+        f"< {ws.headers['Sec-WebSocket-Accept']} >  HAS LEFT"
+    )
+
     return ws
 
 
@@ -59,8 +59,8 @@ if __name__ == '__main__':
     app = web.Application()
 
     app.add_routes([web.get('/', index)])
-    app.add_routes([web.get('/message', message)])
     app.add_routes([web.get('/ws', websocket_handler)])
+    app.add_routes([web.post('/message', message)])
 
     BASE_DIR = pathlib.Path(__file__).parent
     aiohttp_jinja2.setup(
