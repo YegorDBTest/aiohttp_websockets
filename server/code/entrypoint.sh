@@ -4,4 +4,4 @@
 # 	sleep 60
 # done
 
-python main.py
+python src/main.py

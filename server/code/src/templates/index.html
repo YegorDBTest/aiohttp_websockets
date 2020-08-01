@@ -6,14 +6,14 @@
   </head>
 
   <body>
-    Check "socket" variable
+    <div id="messages-box"></div>
   </body>
 
   <script type="text/javascript">
     const socket = new WebSocket('ws://localhost:8080/ws');
 
     socket.addEventListener('open', function(e) {
-      console.log('connection has been opened');
+      console.log('socket server connection has been opened');
     });
 
     socket.addEventListener('message', function(e) {
@@ -21,11 +21,11 @@
     });
 
     socket.addEventListener('close', function(e) {
-      console.log('connection has been closed');
+      console.log('socket server connection has been closed');
     });
 
     socket.addEventListener('error', function(e) {
-      console.log('error', e);
+      console.log('socket server connection error', e);
     });
   </script>
 </html>
