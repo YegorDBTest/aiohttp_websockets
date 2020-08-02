@@ -3,6 +3,44 @@
   <head>
     <meta charset="utf-8">
     <title>Socket</title>
+
+    <style type="text/css">
+      #messages-box {
+        width: 500px;
+        height: 500px;
+        margin: auto;
+        border: 1px solid black;
+        border-radius: 5px;
+        overflow: auto;
+      }
+
+      .staff-message {
+        font-size: x-small;
+        text-align: center;
+        background-color: beige;
+        width: max-content;
+        margin: 10px auto;
+        padding: 2px;
+        border-radius: 5px;
+      }
+
+      .message-box{
+        background-color: aliceblue;
+        margin: 10px 5px;
+        border-radius: 5px;
+        width: 400px;
+      }
+
+      .message-sender {
+        font-size: xx-small;
+        font-weight: bold;
+        padding: 3px;
+      }
+
+      .user-message {
+        padding: 5px;
+      }
+    </style>
   </head>
 
   <body>
@@ -10,6 +48,37 @@
   </body>
 
   <script type="text/javascript">
+    function drawStaffMessage(text) {
+      let message = document.createElement('div');
+      message.classList.add('staff-message');
+      message.textContent = text;
+      let messagesBox = document.getElementById('messages-box');
+      messagesBox.appendChild(message);
+    }
+
+    function drawUserMessage(sender, text) {
+        let messageBox = document.createElement('div');
+        messageBox.classList.add('message-box');
+        let messageSender = document.createElement('div');
+        messageSender.classList.add('message-sender');
+        messageSender.textContent = sender;
+        messageBox.appendChild(messageSender);
+        let message = document.createElement('div');
+        message.classList.add('user-message');
+        message.textContent = text;
+        messageBox.appendChild(message);
+        let messagesBox = document.getElementById('messages-box');
+        messagesBox.appendChild(messageBox);
+    }
+
+    function drawMessage(data) {
+      if (data.sender == 'staff') {
+        drawStaffMessage(data.text);
+      } else {
+        drawUserMessage(data.sender, data.text);
+      }
+    }
+
     const socket = new WebSocket('ws://localhost:8080/ws');
 
     socket.addEventListener('open', function(e) {
@@ -17,7 +86,8 @@
     });
 
     socket.addEventListener('message', function(e) {
-      console.log(e.data);
+      let data = JSON.parse(e.data);
+      drawMessage(data);
     });
 
     socket.addEventListener('close', function(e) {

@@ -11,6 +11,9 @@ class WebsocketsHolder:
     def remove(self, ws):
         del self._items[ws.headers['Sec-WebSocket-Accept']]
 
-    async def send(self, message):
+    async def send(self, sender, message):
         for ws in self:
-            await ws.send_str(message)
+            await ws.send_json({
+                'sender': sender,
+                'text': message,
+            })
