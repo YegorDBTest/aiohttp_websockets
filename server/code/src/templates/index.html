@@ -5,13 +5,25 @@
     <title>Socket</title>
 
     <style type="text/css">
+      #content {
+        width: 500px;
+        margin: auto;
+      }
+
       #messages-box {
         width: 500px;
         height: 500px;
-        margin: auto;
         border: 1px solid black;
         border-radius: 5px;
         overflow: auto;
+      }
+
+      #text-input {
+        width: 490px;
+        height: 50px;
+        border: 1px solid black;
+        border-radius: 5px;
+        padding: 5px;
       }
 
       .staff-message {
@@ -44,7 +56,10 @@
   </head>
 
   <body>
-    <div id="messages-box"></div>
+    <div id="content">
+      <div id="messages-box"></div>
+      <textarea id="text-input" placeholder="Press (Ctrl + Enter) to send message"></textarea>
+    </div>
   </body>
 
   <script type="text/javascript">
@@ -79,23 +94,36 @@
       }
     }
 
-    const socket = new WebSocket('ws://localhost:8080/ws');
+    document.addEventListener('DOMContentLoaded', function() {
+      const socket = new WebSocket('ws://localhost:8080/ws');
 
-    socket.addEventListener('open', function(e) {
-      console.log('socket server connection has been opened');
-    });
+      socket.addEventListener('open', function(e) {
+        console.log('socket server connection has been opened');
+      });
 
-    socket.addEventListener('message', function(e) {
-      let data = JSON.parse(e.data);
-      drawMessage(data);
-    });
+      socket.addEventListener('message', function(e) {
+        let data = JSON.parse(e.data);
+        drawMessage(data);
+      });
 
-    socket.addEventListener('close', function(e) {
-      console.log('socket server connection has been closed');
-    });
+      socket.addEventListener('close', function(e) {
+        console.log('socket server connection has been closed');
+      });
 
-    socket.addEventListener('error', function(e) {
-      console.log('socket server connection error', e);
+      socket.addEventListener('error', function(e) {
+        console.log('socket server connection error', e);
+      });
+
+      let textInput = document.getElementById('text-input');
+      textInput.addEventListener('keypress', (e) => {
+        if (e.charCode == 13 && e.ctrlKey) {
+          let value = textInput.value.trim();
+          if (value.length > 0) {
+            socket.send(textInput.value);
+            textInput.value = '';
+          }
+        }
+      });
     });
   </script>
 </html>
