@@ -1,0 +1,47 @@
+#content {
+  width: 500px;
+  margin: auto;
+}
+
+#messages-box {
+  width: 500px;
+  height: 500px;
+  border: 1px solid black;
+  border-radius: 5px;
+  overflow: auto;
+}
+
+#text-input {
+  width: 490px;
+  height: 50px;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.staff-message {
+  font-size: x-small;
+  text-align: center;
+  background-color: beige;
+  width: max-content;
+  margin: 10px auto;
+  padding: 2px;
+  border-radius: 5px;
+}
+
+.message-box{
+  background-color: aliceblue;
+  margin: 10px 5px;
+  border-radius: 5px;
+  width: 400px;
+}
+
+.message-sender {
+  font-size: xx-small;
+  font-weight: bold;
+  padding: 3px;
+}
+
+.user-message {
+  padding: 5px;
+}
